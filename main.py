@@ -22,6 +22,9 @@ class Port:
     strength= 0
     created_resources = {}
 
+    def __str__(self):
+        return "<port type=" + str(self.type) + " resources=" + str(self.resources) + " strength="+ str(self.strength) +">"
+
 class MiningPort(Port):
     type = "mining"
     resources = { "ore": 10000, "iron": 500, "gold": 100, "diamond": 25 }
@@ -33,15 +36,15 @@ class MiningPort(Port):
 class ManufacturingPort(Port):
     type = "manufacturing"
     resources = { "tools": 10000, "engines": 200 }
-    buy_prices = { "food": 30, "iron": 100 "gold":500 "diamond":400 }
+    buy_prices = { "food": 30, "iron": 100, "gold": 500, "diamond":400 }
     sell_prices = { "tools": 10, "engines": 18 }
     strength = 10
     created_resources = { "tools": 100, "engines": 10  }
     
 class FarmingPort(Port):
-    type = "manufacturing"
+    type = "farming"
     resources = { "wheat": 10000, "food": 200 }
-    buy_prices = {"tools": 100 "engines":500 }
+    buy_prices = {"tools": 100, "engines":500 }
     sell_prices = { "wheat": 10, "food": 18 }
     strength = 10
     created_resources = { "wheat": 100, "food": 10  }
@@ -97,51 +100,103 @@ def generate_map():
 
     return map        
         
+def get_stardock(map):
+    stardock_id = 100
+    #for id in map.keys():
+    #    if len(map[id].routes) > len(map[stardock_id].routes):
+    #        stardock_id = id
+
+    #HACK to pick something with warps
+    for id in map.keys():
+        if len(map[id].warps) > len(map[stardock_id].warps):
+            stardock_id = id
+            
+    return stardock_id
+
+def generate_ports(map):
+    ports = {}
+    places_without_port = map.keys()
+    
+    for i in range(0, 100):
+        id = random.choice(places_without_port)
+        ports[id] = MiningPort()
+        places_without_port.remove(id)
+        
+    for i in range(0, 100):
+        id = random.choice(places_without_port)
+        ports[id] = ManufacturingPort()
+        places_without_port.remove(id)
+        
+    for i in range(0, 100):
+        id = random.choice(places_without_port)
+        ports[id] = FarmingPort()
+        places_without_port.remove(id)
+        
+    return ports
+    
+def enter_port(port):
+    
+    while True:
+        actions = ["BUY", "SELL", "BEAM UP"]
+        msg = str(port)
+        
+        action = easygui.buttonbox(msg, choices = actions)
+        
+        if action == "BUY":
+            pass
+        elif action == "SELL":
+            pass
+        elif action == "BEAM UP":
+            return    
+    
+def play_game():
+    having_fun = True
+    map = generate_map()
+    ship = Frigate()
+    stardock_id = get_stardock(map)
+    map[stardock_id].name = "Star Dock"
+    current_id = stardock_id
+    ports = generate_ports(map)            
 
 
-having_fun = True
-map = generate_map()
-ship= Junk ()
-current_id = 100
-#for id in map.keys():
-#    if len(map[id].routes) > len(map[current_id].routes):
-#        current_id = id
+    while (having_fun):
+        sector = map[current_id]
+        port = ports[current_id] if current_id in ports else None
+        msg = ""
+        actions = []
+        
+        msg += "You are in sector " + str(current_id) + " : " + str(sector.name)
+        msg += "  You have " + str(ship.moves) + " moves remaining."
 
-#HACK to pick something with warps
-for id in map.keys():
-    if len(map[id].warps) > len(map[current_id].warps):
-        current_id = id
-                
-map[current_id].name = "Star Dock"
+        print("In sector " + str(current_id) + " : " + str(sector))
+        if (port):
+            print("There is a port here of type: " + port.type)
+            msg += "  There is a " + port.type + " port here."
+            actions += ["LAND"]
+        if ship.moves > 0:
+            actions += ["MOVE: " + str(route) for route in sector.routes]
+        if ship.warp_drive:
+            actions += ["WARP: " + str(warp) for warp in sector.warps]
+        
+        actions += ["QUIT"]
+        
+        action = easygui.buttonbox(msg, choices = actions)
+        print("Perform action: " + str(action))
+        
+        verb = action.split(":")[0]
+        if verb == "WARP":
+            current_id = int(action[-3:])
+        elif verb == "MOVE":
+            current_id = int(action[-3:])
+            ship.moves = ship.moves -1
+        elif verb == "LAND":
+            enter_port(port)
+        elif verb == "QUIT":
+            having_fun = False
+        
+        #if ship.moves==0:
+           #easygui.msgbox("You Have Run Out Of Moves.")
+           
 
-while (having_fun):
-    sector = map[current_id]
-    print("In sector " + str(current_id) + " : " + str(sector))
-    msg = "You are in sector " + str(current_id) + " : " + str(sector.name)
-    msg += "  You have " + str(ship.moves) + " moves remaining."
-    
-    if ship.moves > 0:
-        choices = ["MOVE: " + str(route) for route in sector.routes]
-    else:
-        choices = []
-    if ship.warp_drive:
-        choices += ["WARP: " + str(warp) for warp in sector.warps]
-    
-    choices += ["QUIT"]
-    
-    action = easygui.buttonbox(msg, choices = choices)
-    print("Perform action: " + str(action))
-    
-    if action[0:5] == "WARP:":
-        current_id = int(action[-3:])
-    elif action[0:5] == "MOVE:":
-        current_id = int(action[-3:])
-        ship.moves = ship.moves -1
-    elif action[0:4] == "QUIT":
-        having_fun = False
-    
-    #if ship.moves==0:
-       #easygui.msgbox("You Have Run Out Of Moves.")
-
-   
-raw_input()    
+if __name__ == "__main__":
+    play_game()
