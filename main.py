@@ -1,6 +1,5 @@
 import easygui
 import random
-#name= easygui.buttonbox("What is Your Name?", choices =['Whatever','IDC','IDK'])
 
 class Sector:
     warps = []
@@ -14,10 +13,10 @@ class Sector:
 
     def __str__(self):
         return "<sector routes=" + str(self.routes) + " warps=" + str(self.warps) + " name="+self.name +">"
+
 class Ship:
     moves= 0
     warp_drive=False
-    
 
 class Junk(Ship):
     moves = 3
@@ -26,53 +25,6 @@ class Junk(Ship):
 class Frigate(Ship):
     moves=50
     warp_drive=False
-    
-
-def generate_map_old():
-    map = { 100: Sector(routes = [], name = "Star Dock") }
-
-    min_spokes = 3
-    max_spokes = 9
-    
-    names = ["Sohiri", "Ufrarth", "Wuaria", "Uplerth", "Wieeclite", "Egslorth", "Doaatania", "Oswxoth", "Ceypauturn", "Obestion"]
-        
-    spokes = random.randint(min_spokes, max_spokes)
-    
-    for id in range(2, spokes):
-        name = random.choice(names)
-        #names.remove(name)
-        
-        routes = [100]
-        
-        map[100 * id] = Sector(routes = routes, name = name)
-        print("Created sector " + str(100 * id) + " - " + str(map[100 * id]))
-    #    100: Sector(routes = [200,300,400], name = "Star Dock"), 
-    #    200: Sector(routes = [100]), 
-    #    300: Sector(routes = [100,301,302], warps=[400]), 
-    #    301: Sector(routes = [300]), 
-    #    302: Sector(routes = [300]), 
-    #    400: Sector(routes = [100]) }
-
-    map[100].routes = map.keys()
-    map[100].routes.remove(100)
-    
-    
-    print("Spokes are complete")
-    main_sectors = map[100].routes
-    completed_sectors = []
-    
-    for main_sector_id in main_sectors:
-        spokes = random.randint(min_spokes, max_spokes)
-        for id in range(2, spokes):
-            name = random.choice(names)
-            #names.remove(name)
-            
-            routes = [main_sector_id]
-            map[main_sector_id + id] = Sector(routes = routes, name = name)
-            print("Created sector " + str(main_sector_id + id) + " - " + str(map[main_sector_id + id]))
-            
-    return map
-
 
 def generate_map():
     map = {}
