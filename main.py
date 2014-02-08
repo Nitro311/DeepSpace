@@ -2,11 +2,7 @@ import easygui
 import random
 
 class Sector:
-    warps = []
-    routes = []
-    name=""
-
-    def __init__(self, warps = [], routes = [], name=""):
+    def __init__(self, warps, routes, name):
         self.warps = warps
         self.routes = routes
         self.name = name
@@ -26,10 +22,14 @@ class Frigate(Ship):
     moves=50
     warp_drive=False
 
+class Trireme(Ship):
+    moves = 75
+    warp_drive = True
+
 def generate_map():
     map = {}
     for id in range(100, 999):
-        map[id] = Sector()
+        map[id] = Sector(routes = [], warps = [], name = "")
         
     new_pool = map.keys()
     new_pool.remove(100)
@@ -49,37 +49,60 @@ def generate_map():
         sector_names.remove(sector_name)
         
         current_pool = current_pool + [new_id]
+
+    # Add 50 warps
+    for i in range(0,50):
+        from_id = random.choice(map.keys())
+        to_id = random.choice(map.keys())
         
+        map[from_id].warps += [to_id]
+
     return map        
         
 
 
 having_fun = True
 map = generate_map()
-ship= Frigate()
+ship= Junk ()
 current_id = 100
+#for id in map.keys():
+#    if len(map[id].routes) > len(map[current_id].routes):
+#        current_id = id
+
+#HACK to pick something with warps
 for id in map.keys():
-    if len(map[id].routes) > len(map[current_id].routes):
+    if len(map[id].warps) > len(map[current_id].warps):
         current_id = id
-        
+                
 map[current_id].name = "Star Dock"
 
-while (having_fun and ship.moves > 0):
+while (having_fun):
     sector = map[current_id]
+    print("In sector " + str(current_id) + " : " + str(sector))
     msg = "You are in sector " + str(current_id) + " : " + str(sector.name)
-    msg = msg + "   Where do you want to move?"
-    choices = sector.routes
+    msg += "  You have " + str(ship.moves) + " moves remaining."
+    
+    if ship.moves > 0:
+        choices = ["MOVE: " + str(route) for route in sector.routes]
+    else:
+        choices = []
     if ship.warp_drive:
-        choices = choices + sector.warps
-        
-    move_to = easygui.buttonbox(msg, choices = choices)
-    print("Move you to " + str(move_to))
-    current_id= move_to
+        choices += ["WARP: " + str(warp) for warp in sector.warps]
     
-    ship.moves=ship.moves -1
+    choices += ["QUIT"]
     
+    action = easygui.buttonbox(msg, choices = choices)
+    print("Perform action: " + str(action))
     
-    #if (easygui.buttonbox("Are you still having fun?", choices = ["Yes", "No"]) == "No"):
-        #having_fun = False
+    if action[0:5] == "WARP:":
+        current_id = int(action[-3:])
+    elif action[0:5] == "MOVE:":
+        current_id = int(action[-3:])
+        ship.moves = ship.moves -1
+    elif action[0:4] == "QUIT":
+        having_fun = False
     
+    #if ship.moves==0:
+       #easygui.msgbox("You Have Run Out Of Moves.")
+   
 raw_input()    
