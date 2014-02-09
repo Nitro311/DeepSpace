@@ -1,3 +1,11 @@
+class World:
+    def __init__(self, name, sectors, ports, stardock_location, players):
+        self.name = name
+        self.sectors = sectors
+        self.ports = ports
+        self.stardock_location = stardock_location
+        self.players = players
+
 class Sector:
     def __init__(self, warps, routes, name):
         self.warps = warps
@@ -50,6 +58,7 @@ class FarmingPort(Port):
 
 class Stardock(Port):
     strength = 10000
+    
 
 class Ship:
     moves= 0

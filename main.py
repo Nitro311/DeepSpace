@@ -16,11 +16,11 @@ def save_file(world_name, file_name, obj):
     with open(full_path, 'w') as file_data:
         yaml.dump(obj, file_data)
         
-def load_map(world_name):
-    return load_file(world_name, "map")
+def load_sectors(world_name):
+    return load_file(world_name, "sectors")
 
-def save_map(world_name, map):
-    save_file(world_name, "map", map)
+def save_sectors(world_name, sectors):
+    save_file(world_name, "sectors", sectors)
 
 def load_ports(world_name):
     return load_file(world_name, "ports")
@@ -28,12 +28,12 @@ def load_ports(world_name):
 def save_ports(world_name, ports):
     save_file(world_name, "ports", ports)
 
-def generate_map():
-    map = {}
+def generate_sectors():
+    sectors = {}
     for id in range(100, 999):
-        map[id] = Sector(routes = [], warps = [], name = "")
+        sectors[id] = Sector(routes = [], warps = [], name = "")
         
-    new_pool = list(map.keys())
+    new_pool = list(sectors.keys())
     new_pool.remove(100)
     current_pool = [100]
     
@@ -44,48 +44,48 @@ def generate_map():
         new_pool.remove(new_id)
         
         current_id = random.choice(current_pool)
-        map[current_id].routes = map[current_id].routes + [new_id]
-        map[new_id].routes = map[new_id].routes + [current_id]
+        sectors[current_id].routes = sectors[current_id].routes + [new_id]
+        sectors[new_id].routes = sectors[new_id].routes + [current_id]
         sector_name = random.choice(sector_names)
-        map[new_id].name = sector_name
+        sectors[new_id].name = sector_name
         sector_names.remove(sector_name)
         
         current_pool = current_pool + [new_id]
 
     # Add 50 warps
     for i in range(0,50):
-        from_id = random.choice(list(map.keys()))
-        to_id = random.choice(list(map.keys()))
+        from_id = random.choice(list(sectors.keys()))
+        to_id = random.choice(list(sectors.keys()))
         
-        map[from_id].warps += [to_id]
+        sectors[from_id].warps += [to_id]
 
-    return map        
+    return sectors        
         
-def generate_ports(map):
+def generate_ports(sectors):
     ports = {}
-    places_without_port = list(map.keys())
+    places_without_port = list(sectors.keys())
 
     for i in range(0, 100):
-        id = random.choice(places_without_port)
-        ports[id] = MiningPort()
-        places_without_port.remove(id)
+        location = random.choice(places_without_port)
+        ports[location] = MiningPort()
+        places_without_port.remove(location)
         
     for i in range(0, 100):
-        id = random.choice(places_without_port)
-        ports[id] = ManufacturingPort()
-        places_without_port.remove(id)
+        location = random.choice(places_without_port)
+        ports[location] = ManufacturingPort()
+        places_without_port.remove(location)
         
     for i in range(0, 100):
-        id = random.choice(places_without_port)
-        ports[id] = FarmingPort()
-        places_without_port.remove(id)
+        location = random.choice(places_without_port)
+        ports[location] = FarmingPort()
+        places_without_port.remove(location)
 
-    stardock_id = 100
-    for id in places_without_port:
-        if len(map[id].routes) > len(map[stardock_id].routes):
-            stardock_id = id
-    map[stardock_id].name = "Star Dock"
-    ports[stardock_id] = Stardock()
+    stardock_location = 100
+    for location in places_without_port:
+        if len(sectors[location].routes) > len(sectors[stardock_location].routes):
+            stardock_location = location
+    sectors[stardock_location].name = "Star Dock"
+    ports[stardock_location] = Stardock()
    
     return ports
    
@@ -133,31 +133,25 @@ def generate_player(location):
     player.ship = Frigate()
     player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
     return player
-    
-def play_game(world_name):
+
+class Action():
+    pass
+
+class MoveAction():
+    pass
+
+def enter_sector(player, world):
     having_fun = True
-    map = load_map(world_name)
-    if not map:
-        map = generate_map()
-    ports = load_ports(world_name)
-    if not ports:
-        ports = generate_ports(map)
-    stardock_id = [id for id in ports if isinstance(ports[id], Stardock)][0]
-    player = generate_player(stardock_id)
-    current_id = player.location
-            
-
-
     while (having_fun):
-        sector = map[current_id]
-        port = ports[current_id] if current_id in ports else None
+        sector = world.sectors[player.location]
+        port = world.ports[player.location] if player.location in world.ports else None
         msg = ""
         actions = []
         
-        msg += "You are in sector " + str(current_id) + " : " + str(sector.name)
+        msg += "You are in sector " + str(player.location) + " : " + str(sector.name)
         msg += "  You have " + str(player.ship.moves) + " moves remaining."
 
-        print("In sector " + str(current_id) + " : " + str(sector))
+        print("In sector " + str(player.location) + " : " + str(sector))
         if (port):
             print("There is a port here of type: " + port.type)
             msg += "  There is a " + port.type + " port here."
@@ -174,9 +168,9 @@ def play_game(world_name):
         
         verb = action.split(":")[0]
         if verb == "WARP":
-            current_id = int(action[-3:])
+            player.location = int(action[-3:])
         elif verb == "MOVE":
-            current_id = int(action[-3:])
+            player.location = int(action[-3:])
             player.ship.moves -= 1
         elif verb == "LAND":
             enter_port(port, player)
@@ -186,8 +180,29 @@ def play_game(world_name):
         #if ship.moves==0:
            #easygui.msgbox("You Have Run Out Of Moves.")
 
-    save_map(world_name, map)
-    save_ports(world_name, ports)
+
+def load_world(world_name):
+    sectors = load_sectors(world_name)
+    if not sectors:
+        sectors = generate_sectors()
+    ports = load_ports(world_name)
+    if not ports:
+        ports = generate_ports(sectors)
+    stardock_location = [location for location in ports if isinstance(ports[location], Stardock)][0]
+    # TODO: Load players
+    players = []
+    
+    return World(world_name, sectors, ports, stardock_location, players)
+
+def save_world(world):
+    save_sectors(world.name, world.sectors)
+    save_ports(world.name, world.ports)
+   
+def play_game(world_name):
+    world = load_world(world_name)
+    player = generate_player(world.stardock_location)
+    enter_sector(player, world)
+    save_world(world)
 
 if __name__ == "__main__":
     play_game("default")
