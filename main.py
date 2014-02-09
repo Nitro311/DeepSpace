@@ -13,6 +13,8 @@ class Sector:
 class Player:
     name=""
     gold_coins=0
+    ship = None
+    location = 0
     
 class Port:
     type=""
@@ -48,7 +50,10 @@ class FarmingPort(Port):
     sell_prices = { "wheat": 10, "food": 18 }
     strength = 10
     created_resources = { "wheat": 100, "food": 10  }
-    
+
+class Stardock(Port):
+    strength = 10000
+
 class Ship:
     moves= 0
     warp_drive=False
@@ -101,19 +106,6 @@ def generate_map():
 
     return map        
         
-def get_stardock(map):
-    stardock_id = 100
-    for id in map.keys():
-        if len(map[id].routes) > len(map[stardock_id].routes):
-            stardock_id = id
-
-    #HACK to pick something with warps
-    #for id in map.keys():
-    #    if len(map[id].warps) > len(map[stardock_id].warps):
-    #        stardock_id = id
-    
-    return stardock_id
-
 def generate_ports(map):
     ports = {}
     places_without_port = map.keys()
@@ -132,23 +124,32 @@ def generate_ports(map):
         id = random.choice(places_without_port)
         ports[id] = FarmingPort()
         places_without_port.remove(id)
+
+    stardock_id = 100
+    for id in places_without_port:
+        if len(map[id].routes) > len(map[stardock_id].routes):
+            stardock_id = id
+    map[stardock_id].name = "Star Dock"
+    ports[stardock_id] = Stardock()
         
-    return ports
+    return ports, stardock_id
     
-def enter_port(port, ship, player):
+def enter_port(port, player):
+    
+    cargo = player.ship.resources
     
     while True:
         actions = []
 
         for commodity in port.buy_prices.keys():
-            if commodity in ship.resources and ship.resources[commodity] > 0:
+            if commodity in cargo and cargo[commodity] > 0:
                 actions += ["SELL: " + commodity + " @" + str(port.buy_prices[commodity])]
         for commodity in port.sell_prices.keys():
             if player.gold_coins >= port.sell_prices[commodity]:
                 actions += ["BUY: " + commodity + " @" + str(port.sell_prices[commodity])]
         actions += ["BEAM UP"]
         
-        msg = "You are in a " + port.type + " port.  You have " + str(player.gold_coins) + " coins. You have resources on board: " + str(ship.resources) + " " + str(port)
+        msg = "You are in a " + port.type + " port.  You have " + str(player.gold_coins) + " coins. You have cargo on board: " + str(cargo) + " " + str(port)
         
         action = easygui.buttonbox(msg, choices = actions)
         
@@ -158,29 +159,32 @@ def enter_port(port, ship, player):
             commodity = action.split(" ")[1]
             price = port.sell_prices[commodity]
             player.gold_coins -= price
-            if commodity in ship.resources:
-                ship.resources[commodity] += 1
+            if commodity in cargo:
+                cargo[commodity] += 1
             else:
-                ship.resources[commodity] = 1
+                cargo[commodity] = 1
         elif verb == "SELL":
             commodity = action.split(" ")[1]
             price = port.buy_prices[commodity]
             player.gold_coins += price
-            ship.resources[commodity] -= 1
+            cargo[commodity] -= 1
         elif verb == "BEAM UP":
             return    
+            
+def generate_player(location):
+    player = Player()
+    player.location = location
+    player.gold_coins = 10
+    player.ship = Frigate()
+    player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
+    return player
     
 def play_game():
     having_fun = True
     map = generate_map()
-    player = Player()
-    player.gold_coins = 10
-    ship = Frigate()
-    ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
-    stardock_id = get_stardock(map)
-    map[stardock_id].name = "Star Dock"
-    current_id = stardock_id
-    ports = generate_ports(map)
+    ports, stardock_id = generate_ports(map)
+    player = generate_player(stardock_id)
+    current_id = player.location
             
 
 
@@ -191,16 +195,16 @@ def play_game():
         actions = []
         
         msg += "You are in sector " + str(current_id) + " : " + str(sector.name)
-        msg += "  You have " + str(ship.moves) + " moves remaining."
+        msg += "  You have " + str(player.ship.moves) + " moves remaining."
 
         print("In sector " + str(current_id) + " : " + str(sector))
         if (port):
             print("There is a port here of type: " + port.type)
             msg += "  There is a " + port.type + " port here."
             actions += ["LAND"]
-        if ship.moves > 0:
+        if player.ship.moves > 0:
             actions += ["MOVE: " + str(route) for route in sector.routes]
-        if ship.warp_drive:
+        if player.ship.warp_drive:
             actions += ["WARP: " + str(warp) for warp in sector.warps]
         
         actions += ["QUIT"]
@@ -213,9 +217,9 @@ def play_game():
             current_id = int(action[-3:])
         elif verb == "MOVE":
             current_id = int(action[-3:])
-            ship.moves = ship.moves -1
+            player.ship.moves -= 1
         elif verb == "LAND":
-            enter_port(port, ship, player)
+            enter_port(port, player)
         elif verb == "QUIT":
             having_fun = False
         
