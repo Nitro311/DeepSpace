@@ -54,6 +54,7 @@ class Ship:
     warp_drive=False
     max_weight=100
     min_weight = 0
+    resources = {}
 
 class Junk(Ship):
     moves = 3
@@ -102,15 +103,15 @@ def generate_map():
         
 def get_stardock(map):
     stardock_id = 100
-    #for id in map.keys():
-    #    if len(map[id].routes) > len(map[stardock_id].routes):
-    #        stardock_id = id
+    for id in map.keys():
+        if len(map[id].routes) > len(map[stardock_id].routes):
+            stardock_id = id
 
     #HACK to pick something with warps
-    for id in map.keys():
-        if len(map[id].warps) > len(map[stardock_id].warps):
-            stardock_id = id
-            
+    #for id in map.keys():
+    #    if len(map[id].warps) > len(map[stardock_id].warps):
+    #        stardock_id = id
+    
     return stardock_id
 
 def generate_ports(map):
@@ -134,29 +135,53 @@ def generate_ports(map):
         
     return ports
     
-def enter_port(port):
+def enter_port(port, ship, player):
     
     while True:
-        actions = ["BUY", "SELL", "BEAM UP"]
-        msg = str(port)
+        actions = []
+
+        for commodity in port.buy_prices.keys():
+            if commodity in ship.resources and ship.resources[commodity] > 0:
+                actions += ["SELL: " + commodity + " @" + str(port.buy_prices[commodity])]
+        for commodity in port.sell_prices.keys():
+            if player.gold_coins >= port.sell_prices[commodity]:
+                actions += ["BUY: " + commodity + " @" + str(port.sell_prices[commodity])]
+        actions += ["BEAM UP"]
+        
+        msg = "You are in a " + port.type + " port.  You have " + str(player.gold_coins) + " coins. You have resources on board: " + str(ship.resources) + " " + str(port)
         
         action = easygui.buttonbox(msg, choices = actions)
         
-        if action == "BUY":
-            pass
-        elif action == "SELL":
-            pass
-        elif action == "BEAM UP":
+        verb = action.split(":")[0]
+        
+        if verb == "BUY":
+            commodity = action.split(" ")[1]
+            price = port.sell_prices[commodity]
+            player.gold_coins -= price
+            if commodity in ship.resources:
+                ship.resources[commodity] += 1
+            else:
+                ship.resources[commodity] = 1
+        elif verb == "SELL":
+            commodity = action.split(" ")[1]
+            price = port.buy_prices[commodity]
+            player.gold_coins += price
+            ship.resources[commodity] -= 1
+        elif verb == "BEAM UP":
             return    
     
 def play_game():
     having_fun = True
     map = generate_map()
+    player = Player()
+    player.gold_coins = 10
     ship = Frigate()
+    ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
     stardock_id = get_stardock(map)
     map[stardock_id].name = "Star Dock"
     current_id = stardock_id
-    ports = generate_ports(map)            
+    ports = generate_ports(map)
+            
 
 
     while (having_fun):
@@ -190,7 +215,7 @@ def play_game():
             current_id = int(action[-3:])
             ship.moves = ship.moves -1
         elif verb == "LAND":
-            enter_port(port)
+            enter_port(port, ship, player)
         elif verb == "QUIT":
             having_fun = False
         
