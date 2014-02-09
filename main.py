@@ -108,7 +108,7 @@ def generate_map():
     new_pool.remove(100)
     current_pool = [100]
     
-    sector_names = [line.strip() for line in open('starnames.txt')]
+    sector_names = [line.strip() for line in open('data/starnames.txt')]
     
     while len(new_pool) > 0:
         new_id = random.choice(new_pool)
