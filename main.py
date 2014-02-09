@@ -1,5 +1,6 @@
 import easygui
 import random
+import yaml
 
 class Sector:
     def __init__(self, warps, routes, name):
@@ -73,12 +74,37 @@ class Trireme(Ship):
     moves = 75
     warp_drive = True
 
+def load_file(world_name, file_name):
+    try:
+        full_path = "worlds/" + world_name + "/" + file_name + ".yaml"
+        with open(full_path) as file_data:
+            return yaml.load(file_data)
+    except IOError:
+        return None
+
+def save_file(world_name, file_name, obj):
+    full_path = "worlds/" + world_name + "/" + file_name + ".yaml"
+    with open(full_path, 'w') as file_data:
+        yaml.dump(obj, file_data)
+        
+def load_map(world_name):
+    return load_file(world_name, "map")
+
+def save_map(world_name, map):
+    save_file(world_name, "map", map)
+
+def load_ports(world_name):
+    return load_file(world_name, "ports")
+
+def save_ports(world_name, ports):
+    save_file(world_name, "ports", ports)
+
 def generate_map():
     map = {}
     for id in range(100, 999):
         map[id] = Sector(routes = [], warps = [], name = "")
         
-    new_pool = map.keys()
+    new_pool = list(map.keys())
     new_pool.remove(100)
     current_pool = [100]
     
@@ -99,8 +125,8 @@ def generate_map():
 
     # Add 50 warps
     for i in range(0,50):
-        from_id = random.choice(map.keys())
-        to_id = random.choice(map.keys())
+        from_id = random.choice(list(map.keys()))
+        to_id = random.choice(list(map.keys()))
         
         map[from_id].warps += [to_id]
 
@@ -108,8 +134,8 @@ def generate_map():
         
 def generate_ports(map):
     ports = {}
-    places_without_port = map.keys()
-    
+    places_without_port = list(map.keys())
+
     for i in range(0, 100):
         id = random.choice(places_without_port)
         ports[id] = MiningPort()
@@ -131,9 +157,9 @@ def generate_ports(map):
             stardock_id = id
     map[stardock_id].name = "Star Dock"
     ports[stardock_id] = Stardock()
-        
-    return ports, stardock_id
-    
+   
+    return ports
+   
 def enter_port(port, player):
     
     cargo = player.ship.resources
@@ -179,10 +205,15 @@ def generate_player(location):
     player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
     return player
     
-def play_game():
+def play_game(world_name):
     having_fun = True
-    map = generate_map()
-    ports, stardock_id = generate_ports(map)
+    map = load_map(world_name)
+    if not map:
+        map = generate_map()
+    ports = load_ports(world_name)
+    if not ports:
+        ports = generate_ports(map)
+    stardock_id = [id for id in ports if isinstance(ports[id], Stardock)][0]
     player = generate_player(stardock_id)
     current_id = player.location
             
@@ -225,7 +256,9 @@ def play_game():
         
         #if ship.moves==0:
            #easygui.msgbox("You Have Run Out Of Moves.")
-           
+
+    save_map(world_name, map)
+    save_ports(world_name, ports)
 
 if __name__ == "__main__":
-    play_game()
+    play_game("default")
