@@ -8,7 +8,7 @@ class World:
         self.stardock_location = stardock_location
         self.players = players
         self.chat_log = chat_log
-        
+
 class ChatEntry:
     def __init__(self, player_name, msg):
         self.player_name = player_name
@@ -31,7 +31,7 @@ class Player:
     gold_coins=0
     ship = None
     location = 0
-    
+
 class Port:
     type=""
     resources = {}
@@ -41,7 +41,7 @@ class Port:
     created_resources = {}
 
     def __str__(self):
-        return "<port type=" + str(self.type) + " resources=" + str(self.resources) + " strength="+ str(self.strength) +">"
+        return str(self.type) + " resources=" + str(self.resources) + " strength="+ str(self.strength)
 
 class MiningPort(Port):
     type = "Mining Port"
@@ -58,7 +58,7 @@ class ManufacturingPort(Port):
     sell_prices = { "tools": 10, "engines": 18 }
     strength = 10
     created_resources = { "tools": 100, "engines": 10  }
-    
+
 class FarmingPort(Port):
     type = "Farming Port"
     resources = { "wheat": 10000, "food": 200 }
@@ -70,7 +70,7 @@ class FarmingPort(Port):
 class Stardock(Port):
     type = "StarDock"
     strength = 10000
-    
+
 
 class Ship:
     moves= 0
@@ -79,19 +79,26 @@ class Ship:
     min_weight = 0
     resources = {}
     price =0
+    name=""
+    def __str__(self):
+        return self.name
+
 
 class Junk(Ship):
     moves = 25
     warp_drive = False
     price = 1000
-    
+    name="Junk"
+
 class Frigate(Ship):
     moves=50
     warp_drive=False
     price = 10000
+    name= "Frigate"
 
 class Trireme(Ship):
     moves = 75
     warp_drive = True
     price = 100000
+    name="Trireme"
 
