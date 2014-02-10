@@ -1,6 +1,7 @@
 import easygui
 import random
 import yaml
+import logging
 from classes import *
 
 def load_file(world_name, file_name):
@@ -108,7 +109,7 @@ def enter_stardock(world, port, player):
         
         verb = action.split(":")[0]
 
-        print("verb: [" + verb + "]")
+        logging.info("verb: [" + verb + "]")
         if verb == "Buy ship":            
             ship_type = action[10:]
             print("Buying ship " + ship_type)
@@ -206,7 +207,7 @@ def enter_sector(player, world):
         actions += ["QUIT"]
         
         action = easygui.buttonbox(msg, choices = actions)
-        print("Perform action: " + str(action))
+        logger.info("Perform action: " + str(action))
         
         verb = action.split(":")[0]
         if verb == "WARP":
@@ -250,5 +251,17 @@ def play_game(world_name):
     enter_sector(player, world)
    # save_world(world)
 
+def configure_logging():
+    logger = logging.getLogger("deepspace")
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    logger.info("Logging configured")
+    return logger
+
 if __name__ == "__main__":
+    logger = configure_logging()
     play_game("default")
