@@ -88,7 +88,49 @@ def generate_ports(sectors):
     ports[stardock_location] = Stardock()
    
     return ports
-   
+
+def enter_stardock(world, port, player):
+    while True:
+        msg = ""
+        actions = []
+        if not isinstance(player.ship, Junk)and player.gold_coins >= Junk.price:
+            actions += ["Buy ship: Junk"]     
+        if not isinstance(player.ship, Frigate)and player.gold_coins >= Frigate.price:
+            actions += ["Buy ship: Frigate"]
+        if not isinstance(player.ship, Trireme)and player.gold_coins >= Trireme.price:
+            actions += ["Buy ship: Trireme"]
+        actions += ["Chat"]
+        
+        actions += ["Take Off"]
+        msg += "You are at the Stardock.  You have a " + str(type(player.ship)) + " ship."
+
+        action = easygui.buttonbox(msg, choices = actions)
+        
+        verb = action.split(":")[0]
+
+        print("verb: [" + verb + "]")
+        if verb == "Buy ship":            
+            ship_type = action[10:]
+            print("Buying ship " + ship_type)
+            if ship_type == "Junk":
+                player.ship = Junk()
+                player.gold_coins -= Junk.price   
+            elif ship_type == "Frigate":
+                player.ship = Frigate()
+                player.gold_coins -= Frigate.price
+            elif ship_type == "Trireme":
+                player.ship = Trireme()
+                player.gold_coins -= Trireme.price
+        if verb == "Take Off":
+            
+            return
+        if verb == "Chat":
+            easygui.textbox(title="Chat Log", text=[str(entry) + "\n" for entry in world.chat_log])
+            msg = easygui.enterbox("Chat Msg")
+            if msg and len(msg) > 0:
+                world.chat_log += [ChatEntry(player.name, msg)]
+
+    
 def enter_port(port, player):
     
     cargo = player.ship.resources
@@ -102,9 +144,9 @@ def enter_port(port, player):
         for commodity in port.sell_prices.keys():
             if player.gold_coins >= port.sell_prices[commodity]:
                 actions += ["BUY: " + commodity + " @" + str(port.sell_prices[commodity])]
-        actions += ["BEAM UP"]
+        actions += ["Take Off"]
         
-        msg = "You are in a " + port.type + " port.  You have " + str(player.gold_coins) + " coins. You have cargo on board: " + str(cargo) + " " + str(port)
+        msg = "You are in a " + port.type + ".  You have " + str(player.gold_coins) + " coins. You have cargo on board: " + str(cargo) + " " + str(port)
         
         action = easygui.buttonbox(msg, choices = actions)
         
@@ -123,15 +165,16 @@ def enter_port(port, player):
             price = port.buy_prices[commodity]
             player.gold_coins += price
             cargo[commodity] -= 1
-        elif verb == "BEAM UP":
+        elif verb == "Take Off":
             return    
             
 def generate_player(location):
     player = Player()
     player.location = location
-    player.gold_coins = 10
+    player.gold_coins = 100000
     player.ship = Frigate()
     player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
+    player.name = "BlackBeard"
     return player
 
 class Action():
@@ -153,8 +196,7 @@ def enter_sector(player, world):
 
         print("In sector " + str(player.location) + " : " + str(sector))
         if (port):
-            print("There is a port here of type: " + port.type)
-            msg += "  There is a " + port.type + " port here."
+            msg += "  There is a " + port.type + " here."
             actions += ["LAND"]
         if player.ship.moves > 0:
             actions += ["MOVE: " + str(route) for route in sector.routes]
@@ -173,7 +215,10 @@ def enter_sector(player, world):
             player.location = int(action[-3:])
             player.ship.moves -= 1
         elif verb == "LAND":
-            enter_port(port, player)
+            if isinstance(port, Stardock):
+                enter_stardock(world, port, player)
+            else:
+                enter_port(port, player)
         elif verb == "QUIT":
             having_fun = False
         
@@ -191,8 +236,9 @@ def load_world(world_name):
     stardock_location = [location for location in ports if isinstance(ports[location], Stardock)][0]
     # TODO: Load players
     players = []
+    chat_log = []
     
-    return World(world_name, sectors, ports, stardock_location, players)
+    return World(world_name, sectors, ports, stardock_location, players, chat_log)
 
 def save_world(world):
     save_sectors(world.name, world.sectors)
@@ -202,7 +248,7 @@ def play_game(world_name):
     world = load_world(world_name)
     player = generate_player(world.stardock_location)
     enter_sector(player, world)
-    save_world(world)
+   # save_world(world)
 
 if __name__ == "__main__":
     play_game("default")
