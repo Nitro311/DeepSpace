@@ -83,9 +83,8 @@ def enter_port(port, player):
         elif verb == "Take Off":
             return
 
-def enter_sector(world, player):
-    having_fun = True
-    while (having_fun):
+def main_loop(world, player):
+    while True:
         sector = world.sectors[player.location]
         msg, actions = sector.view(world, player)
 
@@ -96,7 +95,7 @@ def enter_sector(world, player):
         if verb == "WARP":
             player.warp(int(action[-3:]))
         elif verb == "MOVE":
-            player.move_to(world, player, int(action[-3:]))
+            player.move_to(world, int(action[-3:]))
         elif verb == "LAND":
             port = world.ports[player.location]
             if isinstance(port, Stardock):
@@ -104,7 +103,7 @@ def enter_sector(world, player):
             else:
                 enter_port(port, player)
         elif verb == "QUIT":
-            having_fun = False
+            return
 
 def configure_logging():
     logging.basicConfig(level=logging.DEBUG)
@@ -119,5 +118,5 @@ if __name__ == "__main__":
     player.ship = Frigate()
     player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
     player.name = "BlackBeard"
-    enter_sector(world, player)
+    main_loop(world, player)
     world.save()

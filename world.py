@@ -2,6 +2,7 @@ import logging
 import random
 import yaml
 from classes import *
+from storage import *
 
 class World:
     def __init__(self, name, sectors, ports, stardock_location, players, chat_log):
@@ -33,38 +34,23 @@ class World:
         save_ports(self.name, self.ports)
         save_chat_log(self.name, self.chat_log)
 
-def load_file(world_name, file_name):
-    try:
-        full_path = "worlds/" + world_name + "/" + file_name + ".yaml"
-        with open(full_path) as file_data:
-            logging.info("Loading file " + full_path)
-            return yaml.load(file_data)
-    except IOError:
-        return None
-
-def save_file(world_name, file_name, obj):
-    full_path = "worlds/" + world_name + "/" + file_name + ".yaml"
-    with open(full_path, 'w') as file_data:
-        logging.info("Saving file " + full_path)
-        yaml.dump(obj, file_data)
-
 def load_sectors(world_name):
-    return load_file(world_name, "sectors")
+    return load_data(world_name, "sectors")
 
 def save_sectors(world_name, sectors):
-    save_file(world_name, "sectors", sectors)
+    save_data(world_name, "sectors", sectors)
 
 def load_ports(world_name):
-    return load_file(world_name, "ports")
+    return load_data(world_name, "ports")
 
 def save_ports(world_name, ports):
-    save_file(world_name, "ports", ports)
-
-def save_chat_log(world_name, chat_log):
-    save_file(world_name, "chat_log", chat_log)
+    save_data(world_name, "ports", ports)
 
 def load_chat_log(world_name):
-    return load_file(world_name, "chat_log")
+    return load_data(world_name, "chat_log")
+
+def save_chat_log(world_name, chat_log):
+    save_data(world_name, "chat_log", chat_log)
 
 def generate_sectors():
     sectors = {}
