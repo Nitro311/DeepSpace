@@ -22,7 +22,7 @@ class World:
         stardock_location = [location for location in ports if isinstance(ports[location], Stardock)][0]
         chat_log = load_chat_log(world_name)
         if not chat_log:
-            chat_log=[]
+            chat_log = ChatLog()
         # TODO: Load players
         players = []
 

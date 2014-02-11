@@ -41,14 +41,13 @@ def enter_stardock(world, port, player):
 
             return
         if verb == "Chat":
-            easygui.textbox(title="Chat Log", text=[str(entry) + "\n" for entry in world.chat_log])
+            easygui.textbox(title="Chat Log", text=[str(entry) + "\n" for entry in world.chat_log.view()])
             msg = easygui.enterbox("Chat Msg")
             if msg and len(msg) > 0:
-                world.chat_log += [ChatEntry(player.name, msg)]
+                world.chat_log.add(ChatEntry(player, msg))
 
 
 def enter_port(port, player):
-
     cargo = player.ship.resources
 
     while True:
@@ -84,44 +83,22 @@ def enter_port(port, player):
         elif verb == "Take Off":
             return
 
-class Action():
-    pass
-
-class MoveAction():
-    pass
-
-def enter_sector(player, world):
+def enter_sector(world, player):
     having_fun = True
     while (having_fun):
         sector = world.sectors[player.location]
-        port = world.ports[player.location] if player.location in world.ports else None
-        msg = ""
-        actions = []
-
-        msg += "You are in sector " + str(player.location) + " : " + str(sector.name)
-        msg += "  You have " + str(player.ship.moves) + " moves remaining."
-
-        logging.info("In sector " + str(player.location) + " : " + str(sector))
-        if (port):
-            msg += "  There is a " + port.type + " here."
-            actions += ["LAND"]
-        if player.ship.moves > 0:
-            actions += ["MOVE: " + str(route) for route in sector.routes]
-        if player.ship.warp_drive:
-            actions += ["WARP: " + str(warp) for warp in sector.warps]
-
-        actions += ["QUIT"]
+        msg, actions = sector.view(world, player)
 
         action = easygui.buttonbox(msg, choices = actions)
         logging.info("Perform action: " + str(action))
 
         verb = action.split(":")[0]
         if verb == "WARP":
-            player.location = int(action[-3:])
+            player.warp(int(action[-3:]))
         elif verb == "MOVE":
-            player.location = int(action[-3:])
-            player.ship.moves -= 1
+            player.move_to(world, player, int(action[-3:]))
         elif verb == "LAND":
+            port = world.ports[player.location]
             if isinstance(port, Stardock):
                 enter_stardock(world, port, player)
             else:
@@ -129,27 +106,18 @@ def enter_sector(player, world):
         elif verb == "QUIT":
             having_fun = False
 
-        #if ship.moves==0:
-           #easygui.msgbox("You Have Run Out Of Moves.")
-
-
-
-
-def play_game(world_name):
-    world = World.load(world_name)
-    player = Player()
-    player.location = world.stardock_location
-    player.gold_coins = 100000
-    player.ship = Frigate()
-    player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
-    player.name = "BlackBeard"
-    enter_sector(player, world)
-    world.save()
-
 def configure_logging():
     logging.basicConfig(level=logging.DEBUG)
     logging.info("Logging configured")
 
 if __name__ == "__main__":
     configure_logging()
-    play_game("default")
+    world = World.load("default")
+    player = Player()
+    player.location = world.stardock_location
+    player.gold_coins = 100000
+    player.ship = Frigate()
+    player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
+    player.name = "BlackBeard"
+    enter_sector(world, player)
+    world.save()
