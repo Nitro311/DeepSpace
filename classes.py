@@ -1,14 +1,5 @@
 from datetime import datetime
 
-class World:
-    def __init__(self, name, sectors, ports, stardock_location, players, chat_log):
-        self.name = name
-        self.sectors = sectors
-        self.ports = ports
-        self.stardock_location = stardock_location
-        self.players = players
-        self.chat_log = chat_log
-
 class ChatEntry:
     def __init__(self, player_name, msg):
         self.player_name = player_name
