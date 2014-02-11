@@ -84,15 +84,6 @@ def enter_port(port, player):
         elif verb == "Take Off":
             return
 
-def generate_player(location):
-    player = Player()
-    player.location = location
-    player.gold_coins = 100000
-    player.ship = Frigate()
-    player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
-    player.name = "BlackBeard"
-    return player
-
 class Action():
     pass
 
@@ -146,7 +137,12 @@ def enter_sector(player, world):
 
 def play_game(world_name):
     world = World.load(world_name)
-    player = generate_player(world.stardock_location)
+    player = Player()
+    player.location = world.stardock_location
+    player.gold_coins = 100000
+    player.ship = Frigate()
+    player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
+    player.name = "BlackBeard"
     enter_sector(player, world)
     world.save()
 
