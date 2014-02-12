@@ -25,27 +25,6 @@ class Sector:
         self.routes = routes
         self.name = name
 
-    def view(self, world, player):
-        port = world.ports[player.location] if player.location in world.ports else None
-        msg = ""
-        actions = []
-
-        msg += "You are in sector " + str(player.location) + " : " + str(self.name)
-        msg += "  You have " + str(player.ship.moves) + " moves remaining."
-
-        logging.info("In sector " + str(player.location) + " : " + str(self))
-        if (port):
-            msg += "  There is a " + port.type + " here."
-            actions += ["LAND"]
-        if player.ship.moves > 0:
-            actions += ["MOVE: " + str(route) for route in self.routes]
-        if player.ship.warp_drive:
-            actions += ["WARP: " + str(warp) for warp in self.warps]
-
-        actions += ["QUIT"]
-
-        return msg, actions
-
     def __str__(self):
         return "<sector routes=" + str(self.routes) + " warps=" + str(self.warps) + " name="+self.name +">"
 
@@ -54,21 +33,6 @@ class Player:
     gold_coins = 0
     ship = None
     location = 0
-
-    def move_to(self, world, location):
-        if self.ship.moves <= 0:
-            return
-        potential_routes = world.sectors[self.location].routes
-        if location in potential_routes:
-            self.ship.moves -=1
-            self.location = location
-
-    def warp(self, world, location):
-        if self.ship.warp_drive == False:
-            return
-        potential_routes = world.sectors[self.location].warps
-        if location in potential_routes:
-            self.location = location
 
 class Port:
     type=""

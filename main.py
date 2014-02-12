@@ -3,6 +3,7 @@ import random
 import yaml
 import logging
 from classes import *
+from controllers import *
 from world import World
 
 def enter_stardock(world, port, player):
@@ -85,17 +86,20 @@ def enter_port(port, player):
 
 def main_loop(world, player):
     while True:
+        controller = SectorController()
         sector = world.sectors[player.location]
-        msg, actions = sector.view(world, player)
+        msg, actions = controller.view(sector, world, player)
 
         action = easygui.buttonbox(msg, choices = actions)
         logging.info("Perform action: " + str(action))
 
         verb = action.split(":")[0]
         if verb == "WARP":
-            player.warp(int(action[-3:]))
+            controller = PlayerController()
+            controller.warp(int(action[-3:]))
         elif verb == "MOVE":
-            player.move_to(world, int(action[-3:]))
+            controller = PlayerController()
+            controller.move_to(player, world, int(action[-3:]))
         elif verb == "LAND":
             port = world.ports[player.location]
             if isinstance(port, Stardock):
