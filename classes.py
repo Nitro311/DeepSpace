@@ -76,9 +76,9 @@ class Stardock(Port):
 
 class Ship:
     moves= 0
+    total_moves = 0
     warp_drive=False
-    max_weight=100
-    min_weight = 0
+    capacity=0
     resources = {}
     price =0
     name=""
@@ -87,20 +87,30 @@ class Ship:
 
 
 class Junk(Ship):
-    moves = 25
+    total_moves = 25
     warp_drive = False
     price = 1000
     name="Junk"
+    capacity=20
 
 class Frigate(Ship):
-    moves=50
+    total_moves=50
     warp_drive=False
     price = 10000
     name= "Frigate"
+    capacity=50
 
 class Trireme(Ship):
-    moves = 75
+    total_moves = 75
     warp_drive = True
     price = 100000
     name="Trireme"
+    capacity=75
+
+class Schooner(Ship):
+    total_moves = 100
+    warp_drive = True
+    price = 1000000
+    name="Schooner"
+    capacity=100
 

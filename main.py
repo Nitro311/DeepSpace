@@ -10,12 +10,12 @@ def enter_stardock(world, port, player):
     while True:
         msg = ""
         actions = []
-        if not isinstance(player.ship, Junk)and player.gold_coins >= Junk.price:
-            actions += ["Buy ship: Junk"]
-        if not isinstance(player.ship, Frigate)and player.gold_coins >= Frigate.price:
-            actions += ["Buy ship: Frigate"]
-        if not isinstance(player.ship, Trireme)and player.gold_coins >= Trireme.price:
-            actions += ["Buy ship: Trireme"]
+        ships_for_sale = [Junk(), Frigate(), Trireme(), Schooner()]
+        trade_in_value = int(player.ship.price*.8)
+        for ship in ships_for_sale:
+            if not isinstance(player.ship, type(ship))and player.gold_coins+trade_in_value >= ship.price:
+                actions += ["Buy: " + ship.name]
+
         actions += ["Chat"]
 
         actions += ["Take Off"]
@@ -26,27 +26,25 @@ def enter_stardock(world, port, player):
         verb = action.split(":")[0]
 
         logging.info("verb: [" + verb + "]")
-        if verb == "Buy ship":
-            ship_type = action[10:]
-            logging.info("Buying ship " + ship_type)
-            if ship_type == "Junk":
-                player.ship = Junk()
-                player.gold_coins -= Junk.price
-            elif ship_type == "Frigate":
-                player.ship = Frigate()
-                player.gold_coins -= Frigate.price
-            elif ship_type == "Trireme":
-                player.ship = Trireme()
-                player.gold_coins -= Trireme.price
-        if verb == "Take Off":
 
+        if verb == "Buy":
+            ship_type = action[5:]
+            for ship in ships_for_sale:
+                if ship_type == ship.name and player.gold_coins+trade_in_value >= ship.price:
+                    remaining_moves = player.ship.moves
+                    possible_moves = player.ship.total_moves
+                    player.ship = ship
+                    player.ship.moves = int(ship.total_moves * (remaining_moves / possible_moves))
+                    player.gold_coins -= ship.price
+                    player.gold_coins +=trade_in_value
+        if verb == "Take Off":
             return
         if verb == "Chat":
             easygui.textbox(title="Chat Log", text=[str(entry) + "\n" for entry in world.chat_log.view()])
             msg = easygui.enterbox("Chat Msg")
             if msg and len(msg) > 0:
                 world.chat_log.add(ChatEntry(player, msg))
-
+        print (player.gold_coins)
 
 def enter_port(port, player):
     cargo = player.ship.resources
@@ -118,8 +116,9 @@ if __name__ == "__main__":
     world = World.load("default")
     player = Player()
     player.location = world.stardock_location
-    player.gold_coins = 100000
-    player.ship = Frigate()
+    player.gold_coins = 9200
+    player.ship = Junk()
+    player.ship.moves = player.ship.total_moves
     player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
     player.name = "BlackBeard"
     main_loop(world, player)
