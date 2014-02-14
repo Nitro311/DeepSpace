@@ -7,7 +7,7 @@ from controllers import *
 from actions import *
 from world import World
 
-def route(world, player, action):
+def route_action(world, player, action):
     if not action:
         raise Exception("Controller method did not return an Action")
     if not isinstance(action, Action):
@@ -78,5 +78,5 @@ if __name__ == "__main__":
     player = choose_player(world)
     action = SectorViewAction()
     while not isinstance(action, GameQuitAction):
-        action = route(world, player, action)
+        action = route_action(world, player, action)
     world.save()

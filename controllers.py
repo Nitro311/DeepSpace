@@ -16,6 +16,9 @@ class ConsoleController():
         easygui.msgbox(msg, "Oops")
         return SectorViewAction()
 
+    def redirect_result(self, action):
+        return action
+
 class SectorController(ConsoleController):
     def view(self):
         port = self.world.ports[self.player.location] if self.player.location in self.world.ports else None
@@ -48,7 +51,7 @@ class SectorController(ConsoleController):
             self.player.ship.moves -=1
             self.player.location = location
 
-        return SectorViewAction()
+        return self.redirect_result(SectorViewAction())
 
     def warp(self, location):
         location = int(location)
@@ -57,7 +60,7 @@ class SectorController(ConsoleController):
         potential_routes = world.sectors[self.player.location].warps
         if location in potential_routes:
             self.player.location = location
-            return SectorViewAction()
+            return self.redirect_result(SectorViewAction())
         else:
             return self.error_result("Can't move there from here")
 
@@ -66,7 +69,7 @@ class ShipController(ConsoleController):
         if type(ship) == type(self.player.ship):
             return self.error_result("You already have that type of ship")
 
-        trade_in_value= self.player.ship.trade_in_value()
+        trade_in_value = self.player.ship.trade_in_value()
 
         if (self.player.gold_coins + trade_in_value < ship.price):
             return self.error_result("You don't have enough to buy this ship")
@@ -79,21 +82,21 @@ class ShipController(ConsoleController):
         self.player.ship.moves = int(ship.total_moves * (remaining_moves / possible_moves))
         self.player.gold_coins = self.player.gold_coins - ship.price + trade_in_value
 
-        return PortViewAction()
+        return self.redirect_result(PortViewAction())
 
 class ChatController(ConsoleController):
     def view(self):
         easygui.textbox(title="Chat Log", text=[str(entry) + "\n" for entry in self.world.chat_log.view()])
         msg = easygui.enterbox("Chat Msg")
         if msg and len(msg) > 0:
-            return ChatPostAction(msg)
+            return self.redirect_result(ChatPostAction(msg))
         else:
-            return PortViewAction()
+            return self.redirect_result(PortViewAction())
 
     def post(self, msg):
        if msg and len(msg) > 0:
             self.world.chat_log.add(ChatEntry(self.player, msg))
-       return PortViewAction()
+       return self.redirect_result(PortViewAction())
 
 class PortController(ConsoleController):
     def land(self):
@@ -104,7 +107,7 @@ class PortController(ConsoleController):
 
         self.player.area = Area.Port
 
-        return PortViewAction()
+        return self.redirect_result(PortViewAction())
 
     def leave(self):
         if not self.player.location in self.world.ports:
@@ -114,7 +117,7 @@ class PortController(ConsoleController):
 
         self.player.area = Area.Space
 
-        return SectorViewAction()
+        return self.redirect_result(SectorViewAction())
 
     def view(self):
         if not self.player.location in self.world.ports:
@@ -159,7 +162,7 @@ class PortController(ConsoleController):
         else:
             cargo[commodity] = 1
 
-        return PortViewAction()
+        return self.redirect_result(PortViewAction())
 
     def sell_commodity(self, commodity):
         #TODO: Make sure this transaction can take place
@@ -169,4 +172,4 @@ class PortController(ConsoleController):
         self.player.gold_coins += price
         cargo[commodity] -= 1
 
-        return PortViewAction()
+        return self.redirect_result(PortViewAction())
