@@ -1,3 +1,4 @@
+import easygui
 import random
 import yaml
 import logging
@@ -5,68 +6,6 @@ from classes import *
 from controllers import *
 from actions import *
 from world import World
-
-def enter_port(port, player):
-    cargo = player.ship.resources
-
-    while True:
-        actions = []
-
-        for commodity in port.buy_prices.keys():
-            if commodity in cargo and cargo[commodity] > 0:
-                actions += ["SELL: " + commodity + " @" + str(port.buy_prices[commodity])]
-        for commodity in port.sell_prices.keys():
-            if player.gold_coins >= port.sell_prices[commodity]:
-                actions += ["BUY: " + commodity + " @" + str(port.sell_prices[commodity])]
-        actions += ["Take Off"]
-
-        msg = "You are in a " + port.type + ".  You have " + str(player.gold_coins) + " coins. You have cargo on board: " + str(cargo) + " " + str(port)
-
-        action = easygui.buttonbox(msg, choices = actions)
-
-        verb = action.split(":")[0]
-
-        if verb == "BUY":
-            commodity = action.split(" ")[1]
-            price = port.sell_prices[commodity]
-            player.gold_coins -= price
-            if commodity in cargo:
-                cargo[commodity] += 1
-            else:
-                cargo[commodity] = 1
-        elif verb == "SELL":
-            commodity = action.split(" ")[1]
-            price = port.buy_prices[commodity]
-            player.gold_coins += price
-            cargo[commodity] -= 1
-        elif verb == "Take Off":
-            return
-
-def main_loop(world, player):
-    while True:
-        controller = SectorController()
-        sector = world.sectors[player.location]
-        msg, actions = controller.view(sector, world, player)
-
-        action = easygui.buttonbox(msg, choices = actions)
-        logging.info("Perform action: " + str(action))
-
-        verb = action.split(":")[0]
-        if verb == "WARP":
-            controller = PlayerController()
-            controller.warp(int(action[-3:]))
-        elif verb == "MOVE":
-            controller = PlayerController()
-            controller.move_to(player, world, int(action[-3:]))
-        elif verb == "LAND":
-            if world.stardock_location == player.location:
-                controller = StardockController()
-                controller.view(world, player)
-            else:
-                port = world.ports[player.location]
-                enter_port(port, player)
-        elif verb == "QUIT":
-            return
 
 def route(world, player, action):
     if not action:
@@ -107,17 +46,36 @@ def configure_logging():
     logging.basicConfig(level=logging.DEBUG)
     logging.info("Logging configured")
 
-if __name__ == "__main__":
-    configure_logging()
-    world = World.load("default")
+def choose_player(world):
+    players = [p.name for p in world.players] + ["Guest", "New"]
+    player = None
+
+    index = easygui.indexbox(msg="Pick Player", choices=players)
+    if index < len(world.players):
+        return world.players[index]
+
+    fieldnames = ["Name", "Coins"]
+    fieldvalues = ["BlackBeard " + str(random.randrange(1, 1000)), 9200]
+    results = easygui.multenterbox(msg="Customize your player", title="Guest Player", fields=fieldnames, values=fieldvalues)
+
     player = Player()
     player.location = world.stardock_location
     player.area = Area.Space
-    player.gold_coins = 9200
+    player.gold_coins = int(results[1])
     player.ship = Junk()
     player.ship.moves = player.ship.total_moves
     player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
-    player.name = "BlackBeard"
+    player.name = results[0]
+
+    if index == len(players) - 1:
+        world.players += [player]
+
+    return player
+
+if __name__ == "__main__":
+    configure_logging()
+    world = World.load("default")
+    player = choose_player(world)
     action = SectorViewAction()
     while not isinstance(action, GameQuitAction):
         action = route(world, player, action)

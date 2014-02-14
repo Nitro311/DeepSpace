@@ -24,8 +24,9 @@ class World:
         chat_log = load_chat_log(world_name)
         if not chat_log:
             chat_log = ChatLog()
-        # TODO: Load players
-        players = []
+        players = load_players(world_name)
+        if not players:
+            players = []
 
         return World(world_name, sectors, ports, stardock_location, players, chat_log)
 
@@ -33,6 +34,7 @@ class World:
         save_sectors(self.name, self.sectors)
         save_ports(self.name, self.ports)
         save_chat_log(self.name, self.chat_log)
+        save_players(self.name, self.players)
 
 def load_sectors(world_name):
     return load_data(world_name, "sectors")
@@ -45,6 +47,12 @@ def load_ports(world_name):
 
 def save_ports(world_name, ports):
     save_data(world_name, "ports", ports)
+
+def load_players(world_name):
+    return load_data(world_name, "players")
+
+def save_players(world_name, players):
+    save_data(world_name, "players", players)
 
 def load_chat_log(world_name):
     return load_data(world_name, "chat_log")
