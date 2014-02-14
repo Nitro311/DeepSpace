@@ -1,50 +1,10 @@
-import easygui
 import random
 import yaml
 import logging
 from classes import *
 from controllers import *
+from actions import *
 from world import World
-
-def enter_stardock(world, port, player):
-    while True:
-        msg = ""
-        actions = []
-        ships_for_sale = [Junk(), Frigate(), Trireme(), Schooner()]
-        trade_in_value = int(player.ship.price*.8)
-        for ship in ships_for_sale:
-            if not isinstance(player.ship, type(ship))and player.gold_coins+trade_in_value >= ship.price:
-                actions += ["Buy: " + ship.name]
-
-        actions += ["Chat"]
-
-        actions += ["Take Off"]
-        msg += "You are at the Stardock.  You have a " + str(player.ship) + "."
-
-        action = easygui.buttonbox(msg, choices = actions)
-
-        verb = action.split(":")[0]
-
-        logging.info("verb: [" + verb + "]")
-
-        if verb == "Buy":
-            ship_type = action[5:]
-            for ship in ships_for_sale:
-                if ship_type == ship.name and player.gold_coins+trade_in_value >= ship.price:
-                    remaining_moves = player.ship.moves
-                    possible_moves = player.ship.total_moves
-                    player.ship = ship
-                    player.ship.moves = int(ship.total_moves * (remaining_moves / possible_moves))
-                    player.gold_coins -= ship.price
-                    player.gold_coins +=trade_in_value
-        if verb == "Take Off":
-            return
-        if verb == "Chat":
-            easygui.textbox(title="Chat Log", text=[str(entry) + "\n" for entry in world.chat_log.view()])
-            msg = easygui.enterbox("Chat Msg")
-            if msg and len(msg) > 0:
-                world.chat_log.add(ChatEntry(player, msg))
-        print (player.gold_coins)
 
 def enter_port(port, player):
     cargo = player.ship.resources
@@ -99,13 +59,49 @@ def main_loop(world, player):
             controller = PlayerController()
             controller.move_to(player, world, int(action[-3:]))
         elif verb == "LAND":
-            port = world.ports[player.location]
-            if isinstance(port, Stardock):
-                enter_stardock(world, port, player)
+            if world.stardock_location == player.location:
+                controller = StardockController()
+                controller.view(world, player)
             else:
+                port = world.ports[player.location]
                 enter_port(port, player)
         elif verb == "QUIT":
             return
+
+def route(world, player, action):
+    if not action:
+        raise Exception("Controller method did not return an Action")
+    if not isinstance(action, Action):
+        raise Exception("Action not valid" + str(type(action)))
+
+    if action.controller == "sector":
+        controller = SectorController(world, player)
+        if action.method == "view":
+            return controller.view()
+        elif action.method == "move":
+            return controller.move(action.data["sector"])
+        elif action.method == "warp":
+            return controller.warp(action.data["sector"])
+    elif action.controller == "port":
+        controller = PortController(world, player)
+        if action.method == "view":
+            return controller.view()
+        elif action.method == "land":
+            return controller.land()
+        elif action.method == "leave":
+            return controller.leave()
+        elif action.method == "buy":
+            return controller.buy_commodity(action.data["commodity"])
+        elif action.method == "sell":
+            return controller.sell_commodity(action.data["commodity"])
+    elif action.controller == "ship":
+        controller = ShipController(world, player)
+        if action.method == "buy":
+            return controller.buy(action.data["ship"])
+
+    # TODO: Finish rest of routes
+
+    raise Exception("Could not route action: " + str(type(action)))
 
 def configure_logging():
     logging.basicConfig(level=logging.DEBUG)
@@ -116,10 +112,13 @@ if __name__ == "__main__":
     world = World.load("default")
     player = Player()
     player.location = world.stardock_location
+    player.area = Area.Space
     player.gold_coins = 9200
     player.ship = Junk()
     player.ship.moves = player.ship.total_moves
     player.ship.resources = { "wheat": 10, "food": 18, "iron": 1000 }
     player.name = "BlackBeard"
-    main_loop(world, player)
+    action = SectorViewAction()
+    while not isinstance(action, GameQuitAction):
+        action = route(world, player, action)
     world.save()

@@ -1,6 +1,10 @@
 import logging
 from datetime import datetime
 
+class Area():
+    #ENUM
+    Space, Port, Planet = range(0, 3)
+
 class ChatLog():
     entries = []
 
@@ -33,6 +37,7 @@ class Player:
     gold_coins = 0
     ship = None
     location = 0
+    area = Area.Space
 
 class Port:
     type=""
@@ -82,6 +87,10 @@ class Ship:
     resources = {}
     price =0
     name=""
+
+    def trade_in_value(self):
+        return int(self.price * 0.80)
+
     def __str__(self):
         return self.name
 
