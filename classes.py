@@ -86,6 +86,11 @@ class Ship:
     resources = {}
     price = 0
     name = ""
+    defence=0
+    attack=0
+
+    def __init__(self):
+        self.moves = self.total_moves
 
     def trade_in_value(self):
         return int(self.price * 0.80)
@@ -94,30 +99,177 @@ class Ship:
         return self.name
 
 class Junk(Ship):
-    total_moves = 25
+    total_moves = 100
     warp_drive = False
     price = 1000
     name = "Junk"
     capacity = 20
+    attack=50
+    defence=50
+
+class Fighter(Ship):
+    total_moves = 95
+    warp_drive = False
+    price = 1000
+    name = "Fighter"
+    capacity = 10
+    attack=90
+    defence=10
+
+class Scout(Ship):
+    total_moves = 140
+    warp_drive = False
+    price = 1000
+    name = "Scout"
+    capacity = 5
+    attack=10
+    defence=20
+
+class Destroyer(Ship):
+    total_moves =70
+    warp_drive = False
+    price = 1000
+    name = "Destroyer"
+    capacity = 30
+    attack=120
+    defence=20
+
+class Bomber(Ship):
+    total_moves = 60
+    warp_drive = False
+    price = 1000
+    name = "Bomber"
+    capacity = 50
+    attack=140
+    defence=10
+
+class Interceptor(Ship):
+    total_moves = 120
+    warp_drive = True
+    price = 1000
+    name = "Interceptor"
+    capacity = 20
+    attack=100
+    defence=10
+
+class Stealth_Fighter(Ship):
+    total_moves = 95
+    warp_drive = True
+    price = 1000
+    name = "Stealth Fighter"
+    capacity = 20
+    attack=70
+    defence=20
+
+class Assault_Fighter(Ship):
+    total_moves = 85
+    warp_drive = False
+    price = 1000
+    name = "Assault Fighter"
+    capacity = 15
+    attack=110
+    defence=5
+
+class Recon(Ship):
+    total_moves = 130
+    warp_drive = True
+    price = 1000
+    name = "Recon"
+    capacity = 15
+    attack=60
+    defence=10
+
+class Cutter(Ship):
+    total_moves = 120
+    warp_drive = False
+    price = 1000
+    name = "Cutter"
+    capacity = 25
+    attack=40
+    defence=5
 
 class Frigate(Ship):
-    total_moves = 50
-    warp_drive = False
-    price = 10000
+    total_moves = 70
+    warp_drive  =False
+    capacity = 30
+    price = 0
     name = "Frigate"
-    capacity = 50
+    defence=70
+    attack=50
 
-class Trireme(Ship):
-    total_moves = 75
-    warp_drive = True
-    price = 100000
-    name ="Trireme"
-    capacity = 75
+class Cruiser(Ship):
+    total_moves = 60
+    warp_drive  =False
+    capacity = 40
+    price = 0
+    name = "Cruiser"
+    defence=80
+    attack=60
 
-class Schooner(Ship):
-    total_moves = 100
-    warp_drive = True
-    price = 1000000
-    name = "Schooner"
+class Assault_Carrier(Ship):
+    total_moves = 70
+    warp_drive  =False
+    capacity = 20
+    price = 0
+    name = "Assault Carrier"
+    defence=100
+    attack=10
+
+class Freighter(Ship):
+    total_moves = 35
+    warp_drive  = True
     capacity = 100
+    price = 0
+    name = "Freighter"
+    defence=130
+    attack=0
+
+class Repurposed_Freighter(Ship):
+    total_moves = 35
+    warp_drive = True
+    capacity = 75
+    price = 0
+    name = "Repurposed Freighter"
+    defence=130
+    attack=40
+
+class Blockade_Runner(Ship):
+    total_moves = 120
+    warp_drive  =True
+    capacity = 10
+    price = 0
+    name = "Blockade Runner"
+    defence=70
+    attack=30
+
+class Battle_Cruiser(Ship):
+    total_moves = 50
+    warp_drive  =True
+    capacity = 0
+    price = 0
+    name = "Battle Cruiser"
+    defence=100
+    attack=70
+
+class Missle_Boat(Ship):
+    total_moves = 50
+    warp_drive  =True
+    capacity = 0
+    price = 0
+    name = "Missle Boat"
+    defence=20
+    attack=200
+
+class BattleShip(Ship):
+    moves = 40
+    total_moves = 0
+    warp_drive  =False
+    capacity = 0
+    price = 0
+    name = "BattleShip"
+    defence=100
+    attack=90
+
+
+
 

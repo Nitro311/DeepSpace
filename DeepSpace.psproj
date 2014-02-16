@@ -11,26 +11,34 @@ ClassName=TProjectFilesNode
 
 [Project\ChildNodes\Node0\ChildNodes\Node0]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]classes.py
+FileName=$[Project-Path]actions.py
 
 [Project\ChildNodes\Node0\ChildNodes\Node1]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]controllers.py
+FileName=$[Project-Path]classes.py
 
 [Project\ChildNodes\Node0\ChildNodes\Node2]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]main.py
+FileName=$[Project-Path]controllers.py
 
 [Project\ChildNodes\Node0\ChildNodes\Node3]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]storage.py
+FileName=$[Project-Path]main.py
 
 [Project\ChildNodes\Node0\ChildNodes\Node4]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]README.md
+
+[Project\ChildNodes\Node0\ChildNodes\Node5]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]storage.py
+
+[Project\ChildNodes\Node0\ChildNodes\Node6]
 ClassName=TProjectFileNode
 FileName=$[Project-Path]world.py
 
 [Project\ChildNodes\Node0\ChildNodes]
-Count=5
+Count=7
 
 [Project\ChildNodes\Node1]
 ClassName=TProjectRunConfiguationsNode

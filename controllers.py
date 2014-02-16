@@ -78,6 +78,8 @@ class ShipController(ConsoleController):
 
         remaining_moves = self.player.ship.moves
         possible_moves = self.player.ship.total_moves
+
+        # TODO: Transfer resources (if possible) to new ship
         self.player.ship = ship
         self.player.ship.moves = int(ship.total_moves * (remaining_moves / possible_moves))
         self.player.gold_coins = self.player.gold_coins - ship.price + trade_in_value
@@ -140,7 +142,10 @@ class PortController(ConsoleController):
 
         if isinstance(port, Stardock):
             msg += "  You have a " + str(self.player.ship) + "."
-            ships_for_sale = [Junk(), Frigate(), Trireme(), Schooner()]
+            ships_for_sale = [\
+                Junk(), Fighter(), Scout(), \
+                Cutter(), Frigate(), Cruiser() \
+                ]
             trade_in_value = int(self.player.ship.price * 0.80)
             for ship in ships_for_sale:
                 if not isinstance(self.player.ship, type(ship)) and self.player.gold_coins + trade_in_value >= ship.price:
