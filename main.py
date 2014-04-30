@@ -11,7 +11,8 @@ def route_action(world, player, action):
     if not action:
         raise Exception("Controller method did not return an Action")
     if not isinstance(action, Action):
-        raise Exception("Action not valid" + str(type(action)
+        raise Exception("Action not valid" + str(type(action)))
+
     if action.controller == "sector":
         controller = SectorController(world, player)
         if action.method == "view":
